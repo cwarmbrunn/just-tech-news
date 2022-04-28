@@ -1,38 +1,17 @@
 const router = require("express").Router();
-const { Comment, Post, User } = require("../../models");
-const { sequelize } = require("../../models/Post");
+const { Comment } = require("../../models");
 
 router.get("/", (req, res) => {
-  Comment.findAll({
-    order: [["created_at", "DESC"]],
-    attributes: [
-      "id",
-      "post_url",
-      "title",
-      "created_at",
-      [
-        sequelize.literal(
-          `(SELECT COUNT(*) FROM vote WHERE post.id = vote.post_id)`
-        ),
-        "vote_count",
-      ],
-    ],
-    include: [
-      // Include the Comment model here:
-      {
-        model: Comment,
-        attributes: ["id", "comment_text", "post_id", "user_id", "created_at"],
-        include: {
-          model: User,
-          attributes: ["username"],
-        },
-      },
-      { model: User, attributes: ["username"] },
-    ],
-  });
+  Comment.findAll()
+    .then((dbCommentData) => res.json(dbCommentData))
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json(err);
+    });
 });
 
 router.post("/", (req, res) => {
+  // expects => {comment_text: "This is the comment", user_id: 1, post_id: 2}
   Comment.create({
     comment_text: req.body.comment_text,
     user_id: req.body.user_id,
@@ -47,11 +26,13 @@ router.post("/", (req, res) => {
 
 router.delete("/:id", (req, res) => {
   Comment.destroy({
-    where: { id: req.params.id },
+    where: {
+      id: req.params.id,
+    },
   })
     .then((dbCommentData) => {
       if (!dbCommentData) {
-        res.status(404).json({ message: "No comment found!" });
+        res.status(404).json({ message: "No comment found with this id!" });
         return;
       }
       res.json(dbCommentData);
