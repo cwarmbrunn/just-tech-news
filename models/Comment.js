@@ -14,7 +14,6 @@ Comment.init(
     comment_text: {
       type: DataTypes.STRING,
       allowNull: false,
-      // Ensures that comments are at least 1 character in length
       validate: {
         len: [1],
       },
@@ -28,14 +27,18 @@ Comment.init(
     },
     post_id: {
       type: DataTypes.INTEGER,
-      allowNull: false,
       references: {
         model: "post",
         key: "id",
       },
     },
   },
-  { sequelize, freezeTableName: true, underscored: true, modelName: "comment" }
+  {
+    sequelize,
+    freezeTableName: true,
+    underscored: true,
+    modelName: "comment",
+  }
 );
 
 module.exports = Comment;
